@@ -9,6 +9,7 @@
     color-scheme: dark;
     --page-bg: #171817;
     --text: #f1eee7;
+    --editor-text: #9acb82;
     --muted: #aaa99f;
     --border: var(--border);
     --field-border: var(--field-border);
@@ -22,6 +23,7 @@
     color-scheme: light;
     --page-bg: #f3efe6;
     --text: #302f2b;
+    --editor-text: #302f2b;
     --muted: #716f66;
     --border: #ded8cc;
     --field-border: #c9c1b3;
@@ -111,58 +113,46 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
-#export {
+#export,
+#font-mode,
+#light-mode {
     border: 1px solid var(--placeholder);
     border-radius: 3px;
-    padding: 9px 13px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: transparent;
     color: #f1eee7;
-    font: 600 13px/1 system-ui, sans-serif;
     cursor: pointer;
 }
 
-#typewriter-mode {
-    border: 1px solid #77776c;
-    border-radius: 3px;
-    padding: 9px 13px;
-    background: transparent;
-    color: #f1eee7;
-    font: 600 13px/1 system-ui, sans-serif;
-    cursor: pointer;
+#export svg,
+#light-mode svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.font-icon {
+    font: 600 14px/1 system-ui, sans-serif;
 }
 
 #export:hover,
-#typewriter-mode:hover {
+#font-mode:hover,
+#light-mode:hover {
     border-color: var(--accent);
     color: var(--accent-hover);
 }
 
-#typewriter-mode[aria-pressed="true"] {
-    border-color: #d0a869;
-    color: #e5bd7f;
-}
-
 #export:focus-visible,
-#typewriter-mode:focus-visible {
-    outline: 2px solid #e5bd7f;
-    outline-offset: 3px;
-}
-
-#light-mode {
-    border: 1px solid #77776c;
-    border-radius: 3px;
-    padding: 9px 13px;
-    background: transparent;
-    color: #f1eee7;
-    font: 600 13px/1 system-ui, sans-serif;
-    cursor: pointer;
-}
-
-#light-mode:hover {
-    border-color: #d0a869;
-    color: #e5bd7f;
-}
-
+#font-mode:focus-visible,
 #light-mode:focus-visible {
     outline: 2px solid #e5bd7f;
     outline-offset: 3px;
@@ -191,11 +181,11 @@ body.light-mode #editor:empty::before {
     outline: none;
     background: transparent;
     color: #f1eee7;
-    font-size: 16px;
+    font-size: 23px;
     font-family: Georgia, serif;
     line-height: 1.75;
     padding: 48px 40px 80px;
-    caret-color: #e5bd7f;
+    caret-color: var(--editor-text);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     cursor: text;
@@ -207,9 +197,9 @@ body.light-mode #editor:empty::before {
     pointer-events: none;
 }
 
-#editor s {
-    text-decoration-color: #d0a869;
-    text-decoration-thickness: 2px;
+:root.courier-mode,
+:root.courier-mode * {
+    font-family: "Courier New", Courier, monospace !important;
 }
 
 @media (max-width: 600px) {
@@ -229,35 +219,9 @@ body.light-mode #editor:empty::before {
         width: 130px;
     }
 
-    #export,
-    #typewriter-mode,
-    #light-mode {
-        padding: 8px 9px;
-        font-size: 12px;
-    }
-#theme-toggle {
-    border: 0;
-    border-radius: 3px;
-    padding: 6px 8px;
-    background: transparent;
-    color: var(--muted);
-    font: 12px/1.4 system-ui, sans-serif;
-    cursor: pointer;
-}
-
-#theme-toggle:hover {
-    color: var(--accent-hover);
-}
-
-#theme-toggle:focus-visible {
-    outline: 2px solid var(--accent-hover);
-    outline-offset: 3px;
-}
-
     #editor {
         min-height: calc(100vh - 64px);
         padding: 30px 22px 60px;
-        font-size: 20px;
     }
 }
 </style>
@@ -269,9 +233,21 @@ body.light-mode #editor:empty::before {
     <div class="toolbar-actions">
         <span><span id="word-count">0</span> <span id="word-label">words</span></span>
         <input id="work-name" type="text" aria-label="Work name" placeholder="Work name" autocomplete="off">
-        <button id="typewriter-mode" type="button" aria-pressed="true">Typewriter mode</button>
-        <button id="light-mode" type="button" aria-pressed="false">Light mode</button>
-        <button id="export" type="button">Export .txt</button>
+        <button id="light-mode" type="button" aria-label="Switch to light mode" title="Switch to light mode" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 3a9 9 0 0 1 0 18 4.5 4.5 0 0 0 0-9 4.5 4.5 0 0 1 0-9Z" fill="currentColor" stroke="none"></path>
+                <circle cx="8.5" cy="7.5" r="1" fill="currentColor" stroke="none"></circle>
+                <circle cx="15.5" cy="16.5" r="1" fill="currentColor" stroke="none"></circle>
+            </svg>
+        </button>
+        <button id="font-mode" type="button" aria-label="Use Courier font" title="Use Courier font" aria-pressed="false"><span class="font-icon" aria-hidden="true">A&amp;</span></button>
+        <button id="export" type="button" aria-label="Export as plain text" title="Export as plain text">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 15V3m0 0L8 7m4-4 4 4"></path>
+                <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
+            </svg>
+        </button>
 
         <a id="readme-link" href="README.md">README</a>
     </div>
@@ -284,10 +260,10 @@ const editor = document.getElementById("editor");
 const wordCount = document.getElementById("word-count");
 const wordLabel = document.getElementById("word-label");
 const workName = document.getElementById("work-name");
-const typewriterButton = document.getElementById("typewriter-mode");
 const lightModeButton = document.getElementById("light-mode");
-let typewriterMode = localStorage.getItem("typewriter-mode") !== "false";
+const fontModeButton = document.getElementById("font-mode");
 let lightMode = localStorage.getItem("light-mode") === "true";
+let courierMode = localStorage.getItem("courier-mode") === "true";
 
 workName.value = localStorage.getItem("work-name") || "";
 
@@ -298,14 +274,23 @@ if (savedHtml !== null) {
     editor.textContent = localStorage.getItem("document") || "";
 }
 
-function updateModeButton() {
-    typewriterButton.setAttribute("aria-pressed", String(typewriterMode));
+editor.querySelectorAll("s, del").forEach((markedWord) => {
+    markedWord.replaceWith(document.createTextNode(`~~${markedWord.textContent}~~`));
+});
+
+function updateFontMode() {
+    document.documentElement.classList.toggle("courier-mode", courierMode);
+    fontModeButton.setAttribute("aria-pressed", String(courierMode));
+    fontModeButton.setAttribute("aria-label", courierMode ? "Use serif font" : "Use Courier font");
+    fontModeButton.title = courierMode ? "Use serif font" : "Use Courier font";
 }
 
 function updateLightMode() {
     document.documentElement.classList.toggle("light-mode", lightMode);
     document.body.classList.toggle("light-mode", lightMode);
     lightModeButton.setAttribute("aria-pressed", String(lightMode));
+    lightModeButton.setAttribute("aria-label", lightMode ? "Switch to dark mode" : "Switch to light mode");
+    lightModeButton.title = lightMode ? "Switch to dark mode" : "Switch to light mode";
 }
 
 function saveEditor() {
@@ -341,7 +326,7 @@ function pointAtTextOffset(targetOffset) {
         : { node: editor, offset: 0 };
 }
 
-function strikeWords(key) {
+function markWord(key) {
     const selection = window.getSelection();
     if (!selection.rangeCount) return;
 
@@ -377,15 +362,16 @@ function strikeWords(key) {
     const rangeEnd = pointAtTextOffset(end);
     range.setStart(rangeStart.node, rangeStart.offset);
     range.setEnd(rangeEnd.node, rangeEnd.offset);
-    const strike = document.createElement("s");
-    strike.appendChild(range.extractContents());
-    range.insertNode(strike);
-
-    const afterStrike = document.createRange();
-    afterStrike.setStartAfter(strike);
-    afterStrike.collapse(true);
+    const markedContents = range.extractContents();
+    const markedWord = document.createDocumentFragment();
+    const openingMarker = document.createTextNode("~~");
+    const closingMarker = document.createTextNode("~~");
+    markedWord.append(openingMarker, markedContents, closingMarker);
+    range.insertNode(markedWord);
+    range.setStartAfter(closingMarker);
+    range.collapse(true);
     selection.removeAllRanges();
-    selection.addRange(afterStrike);
+    selection.addRange(range);
     saveEditor();
 }
 
@@ -403,8 +389,8 @@ function insertTextAtSelection(text) {
     saveEditor();
 }
 
-updateModeButton();
 updateLightMode();
+updateFontMode();
 saveEditor();
 
 editor.addEventListener("input", () => {
@@ -416,9 +402,9 @@ workName.addEventListener("input", () => {
 });
 
 editor.addEventListener("keydown", (event) => {
-    if ((event.key === "Backspace" || event.key === "Delete") && typewriterMode) {
+    if (event.key === "Backspace" || event.key === "Delete") {
         event.preventDefault();
-        strikeWords(event.key);
+        markWord(event.key);
     } else if (event.key === "Enter") {
         event.preventDefault();
         insertTextAtSelection("\n");
@@ -430,26 +416,20 @@ editor.addEventListener("paste", (event) => {
     insertTextAtSelection(event.clipboardData.getData("text/plain"));
 });
 
-typewriterButton.addEventListener("click", () => {
-    typewriterMode = !typewriterMode;
-    localStorage.setItem("typewriter-mode", String(typewriterMode));
-    updateModeButton();
-});
-
 lightModeButton.addEventListener("click", () => {
     lightMode = !lightMode;
     localStorage.setItem("light-mode", String(lightMode));
     updateLightMode();
 });
 
-document.getElementById("export").addEventListener("click", () => {
-    function serializeText(node) {
-        if (node.nodeType === 3) return node.nodeValue;
-        const content = Array.from(node.childNodes, serializeText).join("");
-        return node.nodeName === "S" || node.nodeName === "DEL" ? `~~${content}~~` : content;
-    }
+fontModeButton.addEventListener("click", () => {
+    courierMode = !courierMode;
+    localStorage.setItem("courier-mode", String(courierMode));
+    updateFontMode();
+});
 
-    const file = new Blob([serializeText(editor)], { type: "text/plain;charset=utf-8" });
+document.getElementById("export").addEventListener("click", () => {
+    const file = new Blob([editor.textContent], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(file);
     const download = document.createElement("a");
     const filename = workName.value.trim()

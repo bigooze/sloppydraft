@@ -1,14 +1,9 @@
 # sloppydraft
-<<<<<<< HEAD
-vibecoded browser based typewriter
-=======
-warning: use at your own risk. i'm an artist not an engineer and i have no idea what i'm doing. it's html, so it's probably not going to change, but everything could break at any moment. If you clear your cache and cookies, you probably will lose everything, so i recommend you to export every time you write.
 
-sloppydraft is a vibe coded clanker. It's a browser based basic typewriter that can disable backspace. nothing else.
+sloppydraft is a browser-based strict rough-draft typewriter. It autosaves your work in the browser and exports it as a plain-text `.txt` file.
 
-this is meant for rough drafts. there's no formatting. you export your file to a .txt. You can paste that into your favorite word editor and edit and dress it up from there.
+Backspace and Delete never erase text. Instead, they wrap the affected word in literal `~~` markers, so marked text exports as `~~word~~`.
 
- when you export your file when you've been using typewriter mode, the strike-throughs look insane. go ahead and try. 
-it should autosave, but, export often, just in case. 
+Use the font toggle to switch between the default serif typeface and Courier. Dark mode uses green text in the writing area; light mode is also available.
 
->>>>>>> 1742f86 (title timestamp readme)
+Export regularly. Clearing your browser storage may erase locally saved work.
