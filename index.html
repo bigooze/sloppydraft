@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Typerighter</title>
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+    background: #171817;
+    color: #f1eee7;
+}
+
+body {
+    min-height: 100vh;
+}
+
+.toolbar {
+    min-height: 72px;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 1px solid #353633;
+}
+
+.brand {
+    margin: 0;
+    font: 600 16px/1 Georgia, serif;
+    color: #f1eee7;
+}
+
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    color: #aaa99f;
+    font: 14px/1.4 system-ui, sans-serif;
+}
+
+#word-count {
+    color: #f1eee7;
+    font-variant-numeric: tabular-nums;
+}
+
+#export {
+    border: 1px solid #77776c;
+    border-radius: 3px;
+    padding: 9px 13px;
+    background: transparent;
+    color: #f1eee7;
+    font: 600 13px/1 system-ui, sans-serif;
+    cursor: pointer;
+}
+
+#typewriter-mode {
+    border: 1px solid #77776c;
+    border-radius: 3px;
+    padding: 9px 13px;
+    background: transparent;
+    color: #f1eee7;
+    font: 600 13px/1 system-ui, sans-serif;
+    cursor: pointer;
+}
+
+#export:hover,
+#typewriter-mode:hover {
+    border-color: #d0a869;
+    color: #e5bd7f;
+}
+
+#typewriter-mode[aria-pressed="true"] {
+    border-color: #d0a869;
+    color: #e5bd7f;
+}
+
+#export:focus-visible,
+#typewriter-mode:focus-visible {
+    outline: 2px solid #e5bd7f;
+    outline-offset: 3px;
+}
+
+#editor {
+    display: block;
+    width: min(100%, 960px);
+    min-height: calc(100vh - 72px);
+    margin: 0 auto;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #f1eee7;
+    font-size: 23px;
+    font-family: Georgia, serif;
+    line-height: 1.75;
+    padding: 48px 40px 80px;
+    caret-color: #e5bd7f;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    cursor: text;
+}
+
+#editor:empty::before {
+    content: attr(data-placeholder);
+    color: #77776c;
+    pointer-events: none;
+}
+
+#editor s {
+    text-decoration-color: #d0a869;
+    text-decoration-thickness: 2px;
+}
+
+@media (max-width: 600px) {
+    .toolbar {
+        min-height: 64px;
+        padding: 0 18px;
+    }
+
+    .toolbar-actions {
+        gap: 9px;
+    }
+
+    #export,
+    #typewriter-mode {
+        padding: 8px 9px;
+        font-size: 12px;
+    }
+
+    #editor {
+        min-height: calc(100vh - 64px);
+        padding: 30px 22px 60px;
+        font-size: 20px;
+    }
+}
+</style>
+</head>
+
+<body>
+<header class="toolbar">
+    <h1 class="brand">Typerighter</h1>
+    <div class="toolbar-actions">
+        <span><span id="word-count">0</span> <span id="word-label">words</span></span>
+        <button id="typewriter-mode" type="button" aria-pressed="true">Typewriter mode</button>
+        <button id="export" type="button">Export .txt</button>
+    </div>
+</header>
+<main>
+    <div id="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Document" data-placeholder="Start writing..." spellcheck="true"></div>
+</main>
+<script>
+const editor = document.getElementById("editor");
+const wordCount = document.getElementById("word-count");
+const wordLabel = document.getElementById("word-label");
+const typewriterButton = document.getElementById("typewriter-mode");
+let typewriterMode = localStorage.getItem("typewriter-mode") !== "false";
+
+const savedHtml = localStorage.getItem("document-html");
+if (savedHtml !== null) {
+    editor.innerHTML = savedHtml;
+} else {
+    editor.textContent = localStorage.getItem("document") || "";
+}
+
+function updateModeButton() {
+    typewriterButton.setAttribute("aria-pressed", String(typewriterMode));
+}
+
+function saveEditor() {
+    localStorage.setItem("document-html", editor.innerHTML);
+    const words = editor.textContent.trim().match(/\S+/g) || [];
+    wordCount.textContent = words.length;
+    wordLabel.textContent = words.length === 1 ? "word" : "words";
+}
+
+function textOffsetAt(node, offset) {
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    range.setEnd(node, offset);
+    return range.toString().length;
+}
+
+function pointAtTextOffset(targetOffset) {
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+    let node;
+    let lastNode;
+    let remaining = targetOffset;
+
+    while ((node = walker.nextNode())) {
+        lastNode = node;
+        if (remaining <= node.nodeValue.length) {
+            return { node, offset: remaining };
+        }
+        remaining -= node.nodeValue.length;
+    }
+
+    return lastNode
+        ? { node: lastNode, offset: lastNode.nodeValue.length }
+        : { node: editor, offset: 0 };
+}
+
+function strikeWords(key) {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const words = Array.from(editor.textContent.matchAll(/\S+/g), (match) => ({
+        start: match.index,
+        end: match.index + match[0].length,
+    }));
+    let start;
+    let end;
+
+    if (!selection.isCollapsed) {
+        const selected = selection.getRangeAt(0);
+        const selectionStart = textOffsetAt(selected.startContainer, selected.startOffset);
+        const selectionEnd = textOffsetAt(selected.endContainer, selected.endOffset);
+        const selectedWords = words.filter((word) => word.end > selectionStart && word.start < selectionEnd);
+        if (selectedWords.length) {
+            start = selectedWords[0].start;
+            end = selectedWords[selectedWords.length - 1].end;
+        }
+    } else {
+        const cursor = textOffsetAt(selection.focusNode, selection.focusOffset);
+        const currentWord = words.find((word) => cursor > word.start && cursor < word.end);
+        const target = currentWord || (key === "Backspace"
+            ? words.filter((word) => word.end <= cursor).at(-1)
+            : words.find((word) => word.start >= cursor));
+        if (target) ({ start, end } = target);
+    }
+
+    if (start === undefined) return;
+
+    const range = document.createRange();
+    const rangeStart = pointAtTextOffset(start);
+    const rangeEnd = pointAtTextOffset(end);
+    range.setStart(rangeStart.node, rangeStart.offset);
+    range.setEnd(rangeEnd.node, rangeEnd.offset);
+    const strike = document.createElement("s");
+    strike.appendChild(range.extractContents());
+    range.insertNode(strike);
+
+    const afterStrike = document.createRange();
+    afterStrike.setStartAfter(strike);
+    afterStrike.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(afterStrike);
+    saveEditor();
+}
+
+function insertTextAtSelection(text) {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+    const textNode = document.createTextNode(text);
+    range.insertNode(textNode);
+    range.setStartAfter(textNode);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    saveEditor();
+}
+
+updateModeButton();
+saveEditor();
+
+editor.addEventListener("input", () => {
+    saveEditor();
+});
+
+editor.addEventListener("keydown", (event) => {
+    if ((event.key === "Backspace" || event.key === "Delete") && typewriterMode) {
+        event.preventDefault();
+        strikeWords(event.key);
+    } else if (event.key === "Enter") {
+        event.preventDefault();
+        insertTextAtSelection("\n");
+    }
+});
+
+editor.addEventListener("paste", (event) => {
+    event.preventDefault();
+    insertTextAtSelection(event.clipboardData.getData("text/plain"));
+});
+
+typewriterButton.addEventListener("click", () => {
+    typewriterMode = !typewriterMode;
+    localStorage.setItem("typewriter-mode", String(typewriterMode));
+    updateModeButton();
+});
+
+document.getElementById("export").addEventListener("click", () => {
+    function serializeText(node) {
+        if (node.nodeType === 3) return node.nodeValue;
+        const content = Array.from(node.childNodes, serializeText).join("");
+        return node.nodeName === "S" || node.nodeName === "DEL" ? `~~${content}~~` : content;
+    }
+
+    const file = new Blob([serializeText(editor)], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(file);
+    const download = document.createElement("a");
+    download.href = url;
+    download.download = "typerighter.txt";
+    download.click();
+    URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
