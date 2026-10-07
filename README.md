@@ -1,2 +1,2 @@
-# typerighter
-typewriter
+# sloppydraft
+vibecoded browser based typewriter
