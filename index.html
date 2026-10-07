@@ -115,7 +115,8 @@ body {
 
 #export,
 #font-mode,
-#light-mode {
+#light-mode,
+#burn {
     border: 1px solid var(--placeholder);
     border-radius: 3px;
     width: 36px;
@@ -146,16 +147,46 @@ body {
 
 #export:hover,
 #font-mode:hover,
-#light-mode:hover {
+#light-mode:hover,
+#burn:hover {
     border-color: var(--accent);
     color: var(--accent-hover);
 }
 
 #export:focus-visible,
 #font-mode:focus-visible,
-#light-mode:focus-visible {
+#light-mode:focus-visible,
+#burn:focus-visible {
     outline: 2px solid #e5bd7f;
     outline-offset: 3px;
+}
+
+#burn-control {
+    position: relative;
+}
+
+#burn-prompt {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    z-index: 1;
+    width: max-content;
+    max-width: min(260px, calc(100vw - 36px));
+    padding: 6px 8px;
+    border: 1px solid var(--placeholder);
+    border-radius: 3px;
+    background: var(--page-bg);
+    color: var(--text);
+    font: 11px/1.4 system-ui, sans-serif;
+    text-align: center;
+}
+
+#burn-prompt[hidden] {
+    display: none;
+}
+
+#burn-countdown {
+    font-variant-numeric: tabular-nums;
 }
 
 body.light-mode {
@@ -248,6 +279,13 @@ body.light-mode #editor:empty::before {
                 <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
             </svg>
         </button>
+        <div id="burn-control">
+            <span id="burn-prompt" role="status" aria-live="polite" hidden>
+                Press this 5 times in 5 seconds to burn everything
+                <span id="burn-countdown"></span>
+            </span>
+            <button id="burn" type="button" aria-label="Burn all writing" title="Burn all writing">🔥</button>
+        </div>
 
         <a id="readme-link" href="README.md">README</a>
     </div>
@@ -262,8 +300,14 @@ const wordLabel = document.getElementById("word-label");
 const workName = document.getElementById("work-name");
 const lightModeButton = document.getElementById("light-mode");
 const fontModeButton = document.getElementById("font-mode");
+const burnButton = document.getElementById("burn");
+const burnPrompt = document.getElementById("burn-prompt");
+const burnCountdown = document.getElementById("burn-countdown");
 let lightMode = localStorage.getItem("light-mode") === "true";
 let courierMode = localStorage.getItem("courier-mode") === "true";
+let burnPresses = 0;
+let burnDeadline = 0;
+let burnTimer;
 
 workName.value = localStorage.getItem("work-name") || "";
 
@@ -426,6 +470,51 @@ fontModeButton.addEventListener("click", () => {
     courierMode = !courierMode;
     localStorage.setItem("courier-mode", String(courierMode));
     updateFontMode();
+});
+
+function updateBurnCountdown() {
+    const secondsRemaining = Math.max(0, Math.ceil((burnDeadline - Date.now()) / 1000));
+    burnCountdown.textContent = ` (${secondsRemaining})`;
+}
+
+function resetBurnCountdown() {
+    clearInterval(burnTimer);
+    burnPresses = 0;
+    burnDeadline = 0;
+    burnPrompt.hidden = true;
+}
+
+burnButton.addEventListener("click", () => {
+    const now = Date.now();
+    if (burnPresses === 0 || now >= burnDeadline) {
+        clearInterval(burnTimer);
+        burnPresses = 0;
+        burnDeadline = now + 5000;
+        burnPrompt.hidden = false;
+        updateBurnCountdown();
+        burnTimer = setInterval(() => {
+            if (Date.now() >= burnDeadline) {
+                resetBurnCountdown();
+            } else {
+                updateBurnCountdown();
+            }
+        }, 100);
+    }
+
+    burnPresses += 1;
+    if (burnPresses === 5 && now < burnDeadline) {
+        editor.replaceChildren();
+        workName.value = "";
+        localStorage.removeItem("document-html");
+        localStorage.removeItem("document");
+        localStorage.removeItem("work-name");
+        wordCount.textContent = "0";
+        wordLabel.textContent = "words";
+        resetBurnCountdown();
+        return;
+    }
+
+    updateBurnCountdown();
 });
 
 document.getElementById("export").addEventListener("click", () => {
