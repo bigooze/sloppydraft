@@ -272,7 +272,6 @@ body.light-mode #editor:empty::before {
         <button id="typewriter-mode" type="button" aria-pressed="true">Typewriter mode</button>
         <button id="light-mode" type="button" aria-pressed="false">Light mode</button>
         <button id="export" type="button">Export .txt</button>
-        <button id="theme-toggle" type="button" aria-pressed="false">Light mode</button>
 
         <a id="readme-link" href="README.md">README</a>
     </div>
@@ -281,22 +280,6 @@ body.light-mode #editor:empty::before {
     <div id="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Document" data-placeholder="Start writing..." spellcheck="true"></div>
 </main>
 <script>
-    const themeButton = document.getElementById("theme-toggle");
-let lightMode = localStorage.getItem("light-mode") === "true";
-
-function updateTheme() {
-    document.documentElement.classList.toggle("light-mode", lightMode);
-    themeButton.setAttribute("aria-pressed", String(lightMode));
-}
-
-updateTheme();
-
-themeButton.addEventListener("click", () => {
-    lightMode = !lightMode;
-    localStorage.setItem("light-mode", String(lightMode));
-    updateTheme();
-});
-
 const editor = document.getElementById("editor");
 const wordCount = document.getElementById("word-count");
 const wordLabel = document.getElementById("word-label");
@@ -320,6 +303,7 @@ function updateModeButton() {
 }
 
 function updateLightMode() {
+    document.documentElement.classList.toggle("light-mode", lightMode);
     document.body.classList.toggle("light-mode", lightMode);
     lightModeButton.setAttribute("aria-pressed", String(lightMode));
 }
