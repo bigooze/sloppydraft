@@ -396,7 +396,6 @@ body.light-mode #editor:empty::before {
 <dialog id="export-dialog" aria-labelledby="export-heading">
     <h2 class="export-dialog-heading" id="export-heading">Export document</h2>
     <div class="export-dialog-actions">
-        <button id="share-document" type="button">Share document</button>
         <button id="copy-document" type="button">Copy text</button>
         <button id="download-document" type="button">Download .txt</button>
     </div>
@@ -433,8 +432,9 @@ if (savedHtml !== null) {
 }
 
 editor.querySelectorAll("s, del").forEach((markedWord) => {
-    markedWord.replaceWith(document.createTextNode(`~~${markedWord.textContent}~~`));
+    markedWord.replaceWith(document.createTextNode(`[${markedWord.textContent}]`));
 });
+editor.innerHTML = editor.innerHTML.replace(/~~([\s\S]*?)~~/g, "[$1]");
 
 function updateFontMode() {
     document.documentElement.classList.toggle("courier-mode", courierMode);
@@ -528,6 +528,8 @@ function markWord(key) {
     }
 
     if (start === undefined) return;
+    const selectedText = editor.textContent.slice(start, end);
+    if (/^\[[\s\S]*\]$/.test(selectedText)) return;
 
     const range = document.createRange();
     const rangeStart = pointAtTextOffset(start);
@@ -536,8 +538,8 @@ function markWord(key) {
     range.setEnd(rangeEnd.node, rangeEnd.offset);
     const markedContents = range.extractContents();
     const markedWord = document.createDocumentFragment();
-    const openingMarker = document.createTextNode("~~");
-    const closingMarker = document.createTextNode("~~");
+    const openingMarker = document.createTextNode("[");
+    const closingMarker = document.createTextNode("]");
     markedWord.append(openingMarker, markedContents, closingMarker);
     range.insertNode(markedWord);
     range.setStartAfter(closingMarker);
@@ -680,11 +682,6 @@ function createExportFile() {
 
 const exportDialog = document.getElementById("export-dialog");
 const exportStatus = document.getElementById("export-status");
-const shareDocumentButton = document.getElementById("share-document");
-
-if (!navigator.share || !navigator.canShare?.({ files: [createExportFile()] })) {
-    shareDocumentButton.hidden = true;
-}
 
 document.getElementById("export").addEventListener("click", () => {
     exportStatus.textContent = "";
@@ -712,20 +709,6 @@ document.getElementById("copy-document").addEventListener("click", async () => {
         exportStatus.textContent = "Text copied to clipboard.";
     } catch {
         exportStatus.textContent = "Clipboard access is unavailable in this browser.";
-    }
-});
-
-shareDocumentButton.addEventListener("click", async () => {
-    const file = createExportFile();
-    const title = workName.value.trim() || "Untitled";
-
-    try {
-        await navigator.share({ title, files: [file] });
-        exportStatus.textContent = "Document shared.";
-    } catch (error) {
-        if (error.name !== "AbortError") {
-            exportStatus.textContent = "Sharing failed. You can download the text file instead.";
-        }
     }
 });
 </script>
