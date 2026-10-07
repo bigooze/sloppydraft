@@ -5,6 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>sloppydraft</title>
 <style>
+    :root {
+    color-scheme: dark;
+    --page-bg: #171817;
+    --text: #f1eee7;
+    --muted: #aaa99f;
+    --border: var(--border);
+    --field-border: var(--field-border);
+    --button-border: var(--button-border);
+    --placeholder: #88877d;
+    --accent: #d0a869;
+    --accent-hover: #e5bd7f;
+}
+
+:root.light-mode {
+    color-scheme: light;
+    --page-bg: #f3efe6;
+    --text: #302f2b;
+    --muted: #716f66;
+    --border: #ded8cc;
+    --field-border: #c9c1b3;
+    --button-border: #b8b0a2;
+    --placeholder: #898477;
+    --accent: #9a6b2f;
+    --accent-hover: #80551f;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -13,8 +39,10 @@ html,
 body {
     margin: 0;
     min-height: 100%;
-    background: #171817;
-    color: #f1eee7;
+    background: var(--page-bg)
+;
+    color: var(--text)
+;
 }
 
 body {
@@ -41,7 +69,7 @@ body {
     display: flex;
     align-items: center;
     gap: 24px;
-    color: #aaa99f;
+    color: var(--muted);
     font: 14px/1.4 system-ui, sans-serif;
 }
 
@@ -57,7 +85,7 @@ body {
 }
 
 #work-name::placeholder {
-    color: #88877d;
+    color: var(--placeholder);
 }
 
 #work-name:focus-visible {
@@ -84,7 +112,7 @@ body {
 }
 
 #export {
-    border: 1px solid #77776c;
+    border: 1px solid var(--placeholder);
     border-radius: 3px;
     padding: 9px 13px;
     background: transparent;
@@ -105,8 +133,8 @@ body {
 
 #export:hover,
 #typewriter-mode:hover {
-    border-color: #d0a869;
-    color: #e5bd7f;
+    border-color: var(--accent);
+    color: var(--accent-hover);
 }
 
 #typewriter-mode[aria-pressed="true"] {
@@ -172,6 +200,24 @@ body {
         padding: 8px 9px;
         font-size: 12px;
     }
+#theme-toggle {
+    border: 0;
+    border-radius: 3px;
+    padding: 6px 8px;
+    background: transparent;
+    color: var(--muted);
+    font: 12px/1.4 system-ui, sans-serif;
+    cursor: pointer;
+}
+
+#theme-toggle:hover {
+    color: var(--accent-hover);
+}
+
+#theme-toggle:focus-visible {
+    outline: 2px solid var(--accent-hover);
+    outline-offset: 3px;
+}
 
     #editor {
         min-height: calc(100vh - 64px);
@@ -190,6 +236,8 @@ body {
         <input id="work-name" type="text" aria-label="Work name" placeholder="Work name" autocomplete="off">
         <button id="typewriter-mode" type="button" aria-pressed="true">Typewriter mode</button>
         <button id="export" type="button">Export .txt</button>
+        <button id="theme-toggle" type="button" aria-pressed="false">Light mode</button>
+
         <a id="readme-link" href="README.md">README</a>
     </div>
 </header>
@@ -197,6 +245,22 @@ body {
     <div id="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Document" data-placeholder="Start writing..." spellcheck="true"></div>
 </main>
 <script>
+    const themeButton = document.getElementById("theme-toggle");
+let lightMode = localStorage.getItem("light-mode") === "true";
+
+function updateTheme() {
+    document.documentElement.classList.toggle("light-mode", lightMode);
+    themeButton.setAttribute("aria-pressed", String(lightMode));
+}
+
+updateTheme();
+
+themeButton.addEventListener("click", () => {
+    lightMode = !lightMode;
+    localStorage.setItem("light-mode", String(lightMode));
+    updateTheme();
+});
+
 const editor = document.getElementById("editor");
 const wordCount = document.getElementById("word-count");
 const wordLabel = document.getElementById("word-label");
