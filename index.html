@@ -148,6 +148,40 @@ body {
     outline-offset: 3px;
 }
 
+#light-mode {
+    border: 1px solid #77776c;
+    border-radius: 3px;
+    padding: 9px 13px;
+    background: transparent;
+    color: #f1eee7;
+    font: 600 13px/1 system-ui, sans-serif;
+    cursor: pointer;
+}
+
+#light-mode:hover {
+    border-color: #d0a869;
+    color: #e5bd7f;
+}
+
+#light-mode:focus-visible {
+    outline: 2px solid #e5bd7f;
+    outline-offset: 3px;
+}
+
+body.light-mode {
+    background: #fff;
+    color: #000;
+}
+
+body.light-mode * {
+    color: #000 !important;
+}
+
+body.light-mode *::placeholder,
+body.light-mode #editor:empty::before {
+    color: #000 !important;
+}
+
 #editor {
     display: block;
     width: min(100%, 960px);
@@ -196,7 +230,8 @@ body {
     }
 
     #export,
-    #typewriter-mode {
+    #typewriter-mode,
+    #light-mode {
         padding: 8px 9px;
         font-size: 12px;
     }
@@ -235,6 +270,7 @@ body {
         <span><span id="word-count">0</span> <span id="word-label">words</span></span>
         <input id="work-name" type="text" aria-label="Work name" placeholder="Work name" autocomplete="off">
         <button id="typewriter-mode" type="button" aria-pressed="true">Typewriter mode</button>
+        <button id="light-mode" type="button" aria-pressed="false">Light mode</button>
         <button id="export" type="button">Export .txt</button>
         <button id="theme-toggle" type="button" aria-pressed="false">Light mode</button>
 
@@ -266,7 +302,9 @@ const wordCount = document.getElementById("word-count");
 const wordLabel = document.getElementById("word-label");
 const workName = document.getElementById("work-name");
 const typewriterButton = document.getElementById("typewriter-mode");
+const lightModeButton = document.getElementById("light-mode");
 let typewriterMode = localStorage.getItem("typewriter-mode") !== "false";
+let lightMode = localStorage.getItem("light-mode") === "true";
 
 workName.value = localStorage.getItem("work-name") || "";
 
@@ -279,6 +317,11 @@ if (savedHtml !== null) {
 
 function updateModeButton() {
     typewriterButton.setAttribute("aria-pressed", String(typewriterMode));
+}
+
+function updateLightMode() {
+    document.body.classList.toggle("light-mode", lightMode);
+    lightModeButton.setAttribute("aria-pressed", String(lightMode));
 }
 
 function saveEditor() {
@@ -377,6 +420,7 @@ function insertTextAtSelection(text) {
 }
 
 updateModeButton();
+updateLightMode();
 saveEditor();
 
 editor.addEventListener("input", () => {
@@ -406,6 +450,12 @@ typewriterButton.addEventListener("click", () => {
     typewriterMode = !typewriterMode;
     localStorage.setItem("typewriter-mode", String(typewriterMode));
     updateModeButton();
+});
+
+lightModeButton.addEventListener("click", () => {
+    lightMode = !lightMode;
+    localStorage.setItem("light-mode", String(lightMode));
+    updateLightMode();
 });
 
 document.getElementById("export").addEventListener("click", () => {
