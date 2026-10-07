@@ -61,6 +61,11 @@ body {
     border-bottom: 1px solid #353633;
 }
 
+.toolbar[hidden],
+#show-toolbar[hidden] {
+    display: none;
+}
+
 .brand {
     margin: 0;
     font: 600 12px/1 Georgia, serif;
@@ -114,9 +119,12 @@ body {
 }
 
 #export,
+#email,
 #font-mode,
 #light-mode,
-#burn {
+#burn,
+#hide-toolbar,
+#show-toolbar {
     border: 1px solid var(--placeholder);
     border-radius: 3px;
     width: 36px;
@@ -131,7 +139,10 @@ body {
 }
 
 #export svg,
-#light-mode svg {
+#email svg,
+#hide-toolbar svg,
+#light-mode svg,
+#show-toolbar svg {
     width: 19px;
     height: 19px;
     fill: none;
@@ -146,23 +157,42 @@ body {
 }
 
 #export:hover,
+#email:hover,
 #font-mode:hover,
 #light-mode:hover,
-#burn:hover {
+#burn:hover,
+#hide-toolbar:hover,
+#show-toolbar:hover {
     border-color: var(--accent);
     color: var(--accent-hover);
 }
 
 #export:focus-visible,
+#email:focus-visible,
 #font-mode:focus-visible,
 #light-mode:focus-visible,
-#burn:focus-visible {
+#burn:focus-visible,
+#hide-toolbar:focus-visible,
+#show-toolbar:focus-visible {
     outline: 2px solid #e5bd7f;
     outline-offset: 3px;
 }
 
 #burn-control {
     position: relative;
+}
+
+#show-toolbar {
+    position: fixed;
+    top: 12px;
+    right: 18px;
+    z-index: 2;
+    background: var(--page-bg);
+}
+
+body.toolbar-hidden #editor {
+    min-height: 100vh;
+    padding-top: 84px;
 }
 
 #burn-prompt {
@@ -255,12 +285,16 @@ body.light-mode #editor:empty::before {
         min-height: calc(100vh - 64px);
         padding: 30px 22px 60px;
     }
+
+    body.toolbar-hidden #editor {
+        padding: 66px 22px 60px;
+    }
 }
 </style>
 </head>
 
 <body>
-<header class="toolbar">
+<header class="toolbar" id="toolbar">
     <h1 class="brand">sloppydraft</h1>
     <div class="toolbar-actions">
         <span><span id="word-count">0</span> <span id="word-label">words</span></span>
@@ -280,6 +314,12 @@ body.light-mode #editor:empty::before {
                 <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
             </svg>
         </button>
+        <button id="email" type="button" aria-label="Email document" title="Email document">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                <path d="m4 7 8 6 8-6"></path>
+            </svg>
+        </button>
         <div id="burn-control">
             <span id="burn-prompt" role="status" aria-live="polite" hidden>
                 Press this 5 times in 5 seconds to burn everything
@@ -289,8 +329,19 @@ body.light-mode #editor:empty::before {
         </div>
 
         <a id="readme-link" href="README.md">README</a>
+        <button id="hide-toolbar" type="button" aria-controls="toolbar" aria-expanded="true" aria-label="Hide menu and branding" title="Hide menu and branding">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h14"></path>
+                <path d="m12 5-7 7 7 7"></path>
+            </svg>
+        </button>
     </div>
 </header>
+<button id="show-toolbar" type="button" aria-controls="toolbar" aria-expanded="false" aria-label="Show menu and branding" title="Show menu and branding" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+</button>
 <main>
     <div id="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Document" data-placeholder="Start writing..." spellcheck="true"></div>
 </main>
@@ -304,8 +355,12 @@ const fontModeButton = document.getElementById("font-mode");
 const burnButton = document.getElementById("burn");
 const burnPrompt = document.getElementById("burn-prompt");
 const burnCountdown = document.getElementById("burn-countdown");
+const toolbar = document.getElementById("toolbar");
+const hideToolbarButton = document.getElementById("hide-toolbar");
+const showToolbarButton = document.getElementById("show-toolbar");
 let lightMode = localStorage.getItem("light-mode") === "true";
 let courierMode = localStorage.getItem("courier-mode") === "true";
+let toolbarHidden = localStorage.getItem("toolbar-hidden") === "true";
 let burnPresses = 0;
 let burnDeadline = 0;
 let burnTimer;
@@ -336,6 +391,20 @@ function updateLightMode() {
     lightModeButton.setAttribute("aria-pressed", String(lightMode));
     lightModeButton.setAttribute("aria-label", lightMode ? "Switch to dark mode" : "Switch to light mode");
     lightModeButton.title = lightMode ? "Switch to dark mode" : "Switch to light mode";
+}
+
+function setToolbarHidden(hidden, moveFocus = true) {
+    toolbarHidden = hidden;
+    toolbar.hidden = hidden;
+    showToolbarButton.hidden = !hidden;
+    hideToolbarButton.setAttribute("aria-expanded", String(!hidden));
+    showToolbarButton.setAttribute("aria-expanded", String(hidden));
+    document.body.classList.toggle("toolbar-hidden", hidden);
+    localStorage.setItem("toolbar-hidden", String(hidden));
+
+    if (moveFocus) {
+        (hidden ? showToolbarButton : hideToolbarButton).focus();
+    }
 }
 
 function saveEditor() {
@@ -436,7 +505,11 @@ function insertTextAtSelection(text) {
 
 updateLightMode();
 updateFontMode();
+setToolbarHidden(toolbarHidden, false);
 saveEditor();
+
+hideToolbarButton.addEventListener("click", () => setToolbarHidden(true));
+showToolbarButton.addEventListener("click", () => setToolbarHidden(false));
 
 editor.addEventListener("input", () => {
     saveEditor();
@@ -548,6 +621,25 @@ document.getElementById("export").addEventListener("click", () => {
     download.download = `${filename}-${timestamp}.txt`;
     download.click();
     URL.revokeObjectURL(url);
+});
+
+document.getElementById("email").addEventListener("click", () => {
+    const recipient = window.prompt("Enter the email address to open a draft to:");
+    if (recipient === null) return;
+
+    const email = recipient.trim();
+    const emailInput = document.createElement("input");
+    emailInput.type = "email";
+    emailInput.value = email;
+    if (!emailInput.checkValidity()) {
+        window.alert("Please enter a valid email address.");
+        return;
+    }
+
+    const encodedRecipient = email.split("@").map(encodeURIComponent).join("@");
+    const subject = workName.value.trim() || "Untitled";
+    const body = editor.textContent;
+    window.location.href = `mailto:${encodedRecipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 });
 </script>
 </body>
