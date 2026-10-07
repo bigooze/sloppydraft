@@ -10,6 +10,8 @@ Use the arrow button in the toolbar to hide the branding and controls for a dist
 
 Export regularly. Clearing your browser storage may erase locally saved work.
 
-Use Export to copy the writing or download it as a `.txt` file.
+Use Export to copy the writing, download it as a `.txt` file, or send a copy to Dropbox. Dropbox uploads go directly from your browser to your Dropbox account; this app does not host the uploaded file. The first Dropbox save asks you to authorize access, then places the file in the app's Dropbox folder.
+
+To enable Dropbox uploads, configure the Dropbox app with the `files.content.write` permission and app-folder access. Register the deployed page URL as an OAuth redirect URI. The Dropbox app key is used in the browser with PKCE; access tokens are kept only for the current browser tab session.
 
 To erase the current document and its saved work name, press the flame button five times within five seconds. This does not change your appearance preferences.
