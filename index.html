@@ -456,6 +456,13 @@ editor.addEventListener("keydown", (event) => {
     }
 });
 
+editor.addEventListener("beforeinput", (event) => {
+    if (event.inputType === "deleteContentBackward" || event.inputType === "deleteContentForward") {
+        event.preventDefault();
+        markWord(event.inputType === "deleteContentBackward" ? "Backspace" : "Delete");
+    }
+});
+
 editor.addEventListener("paste", (event) => {
     event.preventDefault();
     insertTextAtSelection(event.clipboardData.getData("text/plain"));
