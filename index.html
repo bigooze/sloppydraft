@@ -119,7 +119,6 @@ body {
 }
 
 #export,
-#email,
 #font-mode,
 #light-mode,
 #burn,
@@ -139,7 +138,6 @@ body {
 }
 
 #export svg,
-#email svg,
 #hide-toolbar svg,
 #light-mode svg,
 #show-toolbar svg {
@@ -157,7 +155,6 @@ body {
 }
 
 #export:hover,
-#email:hover,
 #font-mode:hover,
 #light-mode:hover,
 #burn:hover,
@@ -168,7 +165,6 @@ body {
 }
 
 #export:focus-visible,
-#email:focus-visible,
 #font-mode:focus-visible,
 #light-mode:focus-visible,
 #burn:focus-visible,
@@ -259,6 +255,65 @@ body.light-mode #editor:empty::before {
     pointer-events: none;
 }
 
+#export-dialog {
+    width: min(420px, calc(100vw - 32px));
+    border: 1px solid var(--placeholder);
+    border-radius: 4px;
+    padding: 24px;
+    background: var(--page-bg);
+    color: var(--text);
+}
+
+#export-dialog::backdrop {
+    background: rgb(0 0 0 / 65%);
+}
+
+.export-dialog-heading {
+    margin: 0 0 20px;
+    font: 600 18px/1.3 Georgia, serif;
+}
+
+.export-dialog-actions {
+    display: grid;
+    gap: 8px;
+}
+
+.export-dialog-actions button,
+#close-export {
+    min-height: 40px;
+    border: 1px solid var(--placeholder);
+    border-radius: 3px;
+    padding: 8px 12px;
+    background: transparent;
+    color: inherit;
+    font: 14px/1.3 system-ui, sans-serif;
+    text-align: left;
+    cursor: pointer;
+}
+
+.export-dialog-actions button:hover,
+#close-export:hover {
+    border-color: var(--accent);
+    color: var(--accent-hover);
+}
+
+#export-status {
+    min-height: 1.4em;
+    margin: 12px 0;
+    color: var(--muted);
+    font: 13px/1.4 system-ui, sans-serif;
+}
+
+#close-export {
+    display: block;
+    margin-left: auto;
+}
+
+#export-dialog button:focus-visible {
+    outline: 2px solid var(--accent-hover);
+    outline-offset: 2px;
+}
+
 :root.courier-mode,
 :root.courier-mode * {
     font-family: "Courier New", Courier, monospace !important;
@@ -308,16 +363,10 @@ body.light-mode #editor:empty::before {
             </svg>
         </button>
         <button id="font-mode" type="button" aria-label="Use Courier font" title="Use Courier font" aria-pressed="false"><span class="font-icon" aria-hidden="true">A&amp;</span></button>
-        <button id="export" type="button" aria-label="Export as plain text" title="Export as plain text">
+        <button id="export" type="button" aria-label="Export document" title="Export document" aria-haspopup="dialog" aria-controls="export-dialog">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 15V3m0 0L8 7m4-4 4 4"></path>
                 <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
-            </svg>
-        </button>
-        <button id="email" type="button" aria-label="Email document" title="Email document">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-                <path d="m4 7 8 6 8-6"></path>
             </svg>
         </button>
         <div id="burn-control">
@@ -344,6 +393,16 @@ body.light-mode #editor:empty::before {
 <main>
     <div id="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Document" data-placeholder="Start writing..." spellcheck="true"></div>
 </main>
+<dialog id="export-dialog" aria-labelledby="export-heading">
+    <h2 class="export-dialog-heading" id="export-heading">Export document</h2>
+    <div class="export-dialog-actions">
+        <button id="share-document" type="button">Share document</button>
+        <button id="copy-document" type="button">Copy text</button>
+        <button id="download-document" type="button">Download .txt</button>
+    </div>
+    <p id="export-status" role="status" aria-live="polite"></p>
+    <button id="close-export" type="button">Close</button>
+</dialog>
 <script>
 const editor = document.getElementById("editor");
 const wordCount = document.getElementById("word-count");
@@ -597,10 +656,7 @@ burnButton.addEventListener("click", () => {
     updateBurnCountdown();
 });
 
-document.getElementById("export").addEventListener("click", () => {
-    const file = new Blob([editor.textContent], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(file);
-    const download = document.createElement("a");
+function createExportFile() {
     const filename = workName.value.trim()
         .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "")
         .replace(/\s+/g, "-")
@@ -616,29 +672,61 @@ document.getElementById("export").addEventListener("click", () => {
         String(now.getMinutes()).padStart(2, "0"),
         String(now.getSeconds()).padStart(2, "0"),
     ].join("-");
-    download.href = url;
-    download.download = `${filename}-${timestamp}.txt`;
-    download.click();
-    URL.revokeObjectURL(url);
+    const file = new File([editor.textContent], `${filename}-${timestamp}.txt`, {
+        type: "text/plain;charset=utf-8",
+    });
+    return file;
+}
+
+const exportDialog = document.getElementById("export-dialog");
+const exportStatus = document.getElementById("export-status");
+const shareDocumentButton = document.getElementById("share-document");
+
+if (!navigator.share || !navigator.canShare?.({ files: [createExportFile()] })) {
+    shareDocumentButton.hidden = true;
+}
+
+document.getElementById("export").addEventListener("click", () => {
+    exportStatus.textContent = "";
+    exportDialog.showModal();
 });
 
-document.getElementById("email").addEventListener("click", () => {
-    const recipient = window.prompt("Enter the email address to open a draft to:");
-    if (recipient === null) return;
+document.getElementById("close-export").addEventListener("click", () => {
+    exportDialog.close();
+});
 
-    const email = recipient.trim();
-    const emailInput = document.createElement("input");
-    emailInput.type = "email";
-    emailInput.value = email;
-    if (!emailInput.checkValidity()) {
-        window.alert("Please enter a valid email address.");
-        return;
+document.getElementById("download-document").addEventListener("click", () => {
+    const file = createExportFile();
+    const url = URL.createObjectURL(file);
+    const download = document.createElement("a");
+    download.href = url;
+    download.download = file.name;
+    download.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    exportStatus.textContent = "Download started.";
+});
+
+document.getElementById("copy-document").addEventListener("click", async () => {
+    try {
+        await navigator.clipboard.writeText(editor.textContent);
+        exportStatus.textContent = "Text copied to clipboard.";
+    } catch {
+        exportStatus.textContent = "Clipboard access is unavailable in this browser.";
     }
+});
 
-    const encodedRecipient = email.split("@").map(encodeURIComponent).join("@");
-    const subject = workName.value.trim() || "Untitled";
-    const body = editor.textContent;
-    window.location.href = `mailto:${encodedRecipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+shareDocumentButton.addEventListener("click", async () => {
+    const file = createExportFile();
+    const title = workName.value.trim() || "Untitled";
+
+    try {
+        await navigator.share({ title, files: [file] });
+        exportStatus.textContent = "Document shared.";
+    } catch (error) {
+        if (error.name !== "AbortError") {
+            exportStatus.textContent = "Sharing failed. You can download the text file instead.";
+        }
+    }
 });
 </script>
 </body>

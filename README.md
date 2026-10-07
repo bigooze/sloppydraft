@@ -1,6 +1,6 @@
 # sloppydraft
 
-sloppydraft is a browser-based strict rough-draft typewriter. It autosaves your work in the browser, exports it as a plain-text `.txt` file, and can open an email draft containing your writing.
+sloppydraft is a browser-based strict rough-draft typewriter. It autosaves your work in the browser and exports it as a plain-text `.txt` file.
 
 Backspace and Delete never erase text. Instead, they wrap the affected word in literal `~~` markers, so marked text exports as `~~word~~`.
 
@@ -10,6 +10,6 @@ Use the arrow button in the toolbar to hide the branding and controls for a dist
 
 Export regularly. Clearing your browser storage may erase locally saved work.
 
-Use the email button to enter a recipient and open a prefilled draft in your default email app. The writing is included in the message body, not attached as a `.txt` file; review and send the message from your email app.
+Use Export to share the `.txt` file through your device's share sheet when supported, copy the writing, or download the file. Sharing availability depends on your browser and device.
 
 To erase the current document and its saved work name, press the flame button five times within five seconds. This does not change your appearance preferences.
