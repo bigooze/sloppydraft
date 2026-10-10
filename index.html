@@ -5,15 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>sloppydraft</title>
 <style>
-    :root {
+/* Theme tokens keep the dark and light palettes in one place. */
+:root {
     color-scheme: dark;
     --page-bg: #171817;
     --text: #f1eee7;
     --editor-text: #9acb82;
     --muted: #aaa99f;
-    --border: var(--border);
-    --field-border: var(--field-border);
-    --button-border: var(--button-border);
     --placeholder: #88877d;
     --accent: #d0a869;
     --accent-hover: #e5bd7f;
@@ -25,9 +23,6 @@
     --text: #302f2b;
     --editor-text: #302f2b;
     --muted: #716f66;
-    --border: #ded8cc;
-    --field-border: #c9c1b3;
-    --button-border: #b8b0a2;
     --placeholder: #898477;
     --accent: #9a6b2f;
     --accent-hover: #80551f;
@@ -40,17 +35,12 @@
 html,
 body {
     margin: 0;
-    min-height: 100%;
-    background: var(--page-bg)
-;
-    color: var(--text)
-;
-}
-
-body {
     min-height: 100vh;
+    background: var(--page-bg);
+    color: var(--text);
 }
 
+/* Toolbar */
 .toolbar {
     min-height: 72px;
     padding: 0 32px;
@@ -119,6 +109,7 @@ body {
 }
 
 #export,
+#import,
 #font-mode,
 #light-mode,
 #burn,
@@ -138,6 +129,7 @@ body {
 }
 
 #export svg,
+#import svg,
 #hide-toolbar svg,
 #light-mode svg,
 #show-toolbar svg {
@@ -155,6 +147,7 @@ body {
 }
 
 #export:hover,
+#import:hover,
 #font-mode:hover,
 #light-mode:hover,
 #burn:hover,
@@ -165,6 +158,7 @@ body {
 }
 
 #export:focus-visible,
+#import:focus-visible,
 #font-mode:focus-visible,
 #light-mode:focus-visible,
 #burn:focus-visible,
@@ -216,6 +210,7 @@ body.light-mode #burn-prompt {
     font-variant-numeric: tabular-nums;
 }
 
+/* Writing area */
 body.light-mode {
     background: #fff;
     color: #000;
@@ -255,7 +250,9 @@ body.light-mode #editor:empty::before {
     pointer-events: none;
 }
 
-#export-dialog {
+/* Import and export dialogs share their layout and interaction styles. */
+#export-dialog,
+#import-dialog {
     width: min(420px, calc(100vw - 32px));
     border: 1px solid var(--placeholder);
     border-radius: 4px;
@@ -264,22 +261,24 @@ body.light-mode #editor:empty::before {
     color: var(--text);
 }
 
-#export-dialog::backdrop {
+#export-dialog::backdrop,
+#import-dialog::backdrop {
     background: rgb(0 0 0 / 65%);
 }
 
-.export-dialog-heading {
+.dialog-heading {
     margin: 0 0 20px;
     font: 600 18px/1.3 Georgia, serif;
 }
 
-.export-dialog-actions {
+.dialog-actions {
     display: grid;
     gap: 8px;
 }
 
-.export-dialog-actions button,
-#close-export {
+.dialog-actions button,
+#close-export,
+#close-import {
     min-height: 40px;
     border: 1px solid var(--placeholder);
     border-radius: 3px;
@@ -291,25 +290,46 @@ body.light-mode #editor:empty::before {
     cursor: pointer;
 }
 
-.export-dialog-actions button:hover,
-#close-export:hover {
+.dialog-actions button:hover,
+#close-export:hover,
+#close-import:hover {
     border-color: var(--accent);
     color: var(--accent-hover);
 }
 
-#export-status {
+#export-status,
+#import-status {
     min-height: 1.4em;
     margin: 12px 0;
     color: var(--muted);
     font: 13px/1.4 system-ui, sans-serif;
 }
 
-#close-export {
+#dropbox-files {
+    display: grid;
+    gap: 8px;
+    max-height: min(300px, 40vh);
+    margin-top: 12px;
+    overflow-y: auto;
+}
+
+#dropbox-files:empty {
+    display: none;
+}
+
+#dropbox-files button {
+    overflow-wrap: anywhere;
+}
+
+#close-export,
+#close-import {
     display: block;
     margin-left: auto;
 }
 
-#export-dialog button:focus-visible {
+#export-dialog button:focus-visible,
+#import-dialog button:focus-visible,
+#import-dialog input:focus-visible {
     outline: 2px solid var(--accent-hover);
     outline-offset: 2px;
 }
@@ -319,6 +339,7 @@ body.light-mode #editor:empty::before {
     font-family: "Courier New", Courier, monospace !important;
 }
 
+/* Keep the toolbar usable on narrow screens. */
 @media (max-width: 600px) {
     .toolbar {
         min-height: 64px;
@@ -363,6 +384,12 @@ body.light-mode #editor:empty::before {
             </svg>
         </button>
         <button id="font-mode" type="button" aria-label="Use Courier font" title="Use Courier font" aria-pressed="false"><span class="font-icon" aria-hidden="true">A&amp;</span></button>
+        <button id="import" type="button" aria-label="Open document" title="Open document" aria-haspopup="dialog" aria-controls="import-dialog">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12m0 0 4-4m-4 4-4-4"></path>
+                <path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path>
+            </svg>
+        </button>
         <button id="export" type="button" aria-label="Export document" title="Export document" aria-haspopup="dialog" aria-controls="export-dialog">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 15V3m0 0L8 7m4-4 4 4"></path>
@@ -394,8 +421,8 @@ body.light-mode #editor:empty::before {
     <div id="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Document" data-placeholder="Start writing..." spellcheck="true"></div>
 </main>
 <dialog id="export-dialog" aria-labelledby="export-heading">
-    <h2 class="export-dialog-heading" id="export-heading">Export document</h2>
-    <div class="export-dialog-actions">
+    <h2 class="dialog-heading" id="export-heading">Export document</h2>
+    <div class="dialog-actions">
         <button id="dropbox-document" type="button">Send to Dropbox</button>
         <button id="copy-document" type="button">Copy text</button>
         <button id="download-document" type="button">Download .txt</button>
@@ -403,7 +430,20 @@ body.light-mode #editor:empty::before {
     <p id="export-status" role="status" aria-live="polite"></p>
     <button id="close-export" type="button">Close</button>
 </dialog>
+<dialog id="import-dialog" aria-labelledby="import-heading">
+    <h2 class="dialog-heading" id="import-heading">Open a document</h2>
+    <div class="dialog-actions">
+        <input id="local-file" type="file" accept=".txt,.md,text/plain" hidden>
+        <button id="open-local-file" type="button">Open from this device</button>
+        <button id="browse-dropbox" type="button">Open from Dropbox</button>
+    </div>
+    <div id="dropbox-files" aria-label="Dropbox text files"></div>
+    <p id="import-status" role="status" aria-live="polite"></p>
+    <button id="close-import" type="button">Close</button>
+</dialog>
 <script>
+// Start here when following the app: the page is intentionally self-contained.
+// These references connect the JavaScript to the controls in the HTML above.
 const editor = document.getElementById("editor");
 const wordCount = document.getElementById("word-count");
 const wordLabel = document.getElementById("word-label");
@@ -420,6 +460,9 @@ const DROPBOX_APP_KEY = "44zncdp835se0am";
 const DROPBOX_REDIRECT_URI = `${window.location.origin}${window.location.pathname}`;
 const DROPBOX_TRANSACTION_KEY = "dropbox-oauth-transaction";
 const DROPBOX_TOKEN_KEY = "dropbox-access-token";
+const DROPBOX_TEXT_FILE = /\.(txt|md)$/i;
+
+// Preferences and drafts persist across reloads; OAuth tokens last only for this tab.
 let lightMode = localStorage.getItem("light-mode") === "true";
 let courierMode = localStorage.getItem("courier-mode") === "true";
 let toolbarHidden = localStorage.getItem("toolbar-hidden") === "true";
@@ -429,6 +472,7 @@ let burnTimer;
 
 workName.value = localStorage.getItem("work-name") || "";
 
+// Restore the draft before attaching input handlers.
 const savedHtml = localStorage.getItem("document-html");
 if (savedHtml !== null) {
     editor.innerHTML = savedHtml;
@@ -441,6 +485,7 @@ editor.querySelectorAll("s, del").forEach((markedWord) => {
 });
 editor.innerHTML = editor.innerHTML.replace(/~~([\s\S]*?)~~/g, "[$1]");
 
+// Appearance and persistence
 function updateFontMode() {
     document.documentElement.classList.toggle("courier-mode", courierMode);
     fontModeButton.setAttribute("aria-pressed", String(courierMode));
@@ -477,6 +522,9 @@ function saveEditor() {
     wordLabel.textContent = words.length === 1 ? "word" : "words";
 }
 
+// Strict-draft editing
+// DOM ranges use node positions; these helpers translate between those positions
+// and character offsets so word selection works across multiple text nodes.
 function textOffsetAt(node, offset) {
     const range = document.createRange();
     range.selectNodeContents(editor);
@@ -568,6 +616,7 @@ function insertTextAtSelection(text) {
     saveEditor();
 }
 
+// Apply saved settings and refresh the word count once on page load.
 updateLightMode();
 updateFontMode();
 setToolbarHidden(toolbarHidden, false);
@@ -576,6 +625,7 @@ saveEditor();
 hideToolbarButton.addEventListener("click", () => setToolbarHidden(true));
 showToolbarButton.addEventListener("click", () => setToolbarHidden(false));
 
+// Keep writing plain text, and route destructive keys through markWord().
 editor.addEventListener("input", () => {
     saveEditor();
 });
@@ -618,6 +668,7 @@ fontModeButton.addEventListener("click", () => {
     updateFontMode();
 });
 
+// The burn action is deliberately separate from normal editing and requires five presses.
 function updateBurnCountdown() {
     const secondsRemaining = Math.max(0, Math.ceil((burnDeadline - Date.now()) / 1000));
     burnCountdown.textContent = ` (${secondsRemaining})`;
@@ -663,6 +714,7 @@ burnButton.addEventListener("click", () => {
     updateBurnCountdown();
 });
 
+// Export
 function createExportFile() {
     const filename = workName.value.trim()
         .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "")
@@ -679,15 +731,18 @@ function createExportFile() {
         String(now.getMinutes()).padStart(2, "0"),
         String(now.getSeconds()).padStart(2, "0"),
     ].join("-");
-    const file = new File([editor.textContent], `${filename}-${timestamp}.txt`, {
+    return new File([editor.textContent], `${filename}-${timestamp}.txt`, {
         type: "text/plain;charset=utf-8",
     });
-    return file;
 }
 
 const exportDialog = document.getElementById("export-dialog");
 const exportStatus = document.getElementById("export-status");
+const importDialog = document.getElementById("import-dialog");
+const importStatus = document.getElementById("import-status");
+const dropboxFiles = document.getElementById("dropbox-files");
 
+// Dropbox uses OAuth 2.0 with PKCE so no client secret is stored in this page.
 function randomBase64Url(byteLength) {
     const bytes = crypto.getRandomValues(new Uint8Array(byteLength));
     return btoa(String.fromCharCode(...bytes))
@@ -733,7 +788,7 @@ async function uploadToDropbox(accessToken) {
     exportStatus.textContent = `Saved ${file.name} to Dropbox.`;
 }
 
-async function startDropboxAuthorization() {
+async function startDropboxAuthorization(action) {
     const verifier = randomBase64Url(64);
     const state = randomBase64Url(32);
     const challengeBytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
@@ -741,7 +796,7 @@ async function startDropboxAuthorization() {
         .replace(/\+/g, "-")
         .replace(/\//g, "_")
         .replace(/=+$/g, "");
-    sessionStorage.setItem(DROPBOX_TRANSACTION_KEY, JSON.stringify({ verifier, state }));
+    sessionStorage.setItem(DROPBOX_TRANSACTION_KEY, JSON.stringify({ verifier, state, action }));
 
     const authorizationUrl = new URL("https://www.dropbox.com/oauth2/authorize");
     authorizationUrl.search = new URLSearchParams({
@@ -752,11 +807,13 @@ async function startDropboxAuthorization() {
         code_challenge: challenge,
         code_challenge_method: "S256",
         state,
-        scope: "files.content.write",
+        scope: "files.content.read files.content.write files.metadata.read",
     });
     window.location.assign(authorizationUrl);
 }
 
+// Dropbox redirects back here with a short-lived code; exchange it, then resume
+// the action (browse or upload) saved in sessionStorage before leaving the page.
 async function finishDropboxAuthorization() {
     const callbackUrl = new URL(window.location.href);
     const code = callbackUrl.searchParams.get("code");
@@ -764,8 +821,6 @@ async function finishDropboxAuthorization() {
     if (!code && !authorizationError) return;
 
     window.history.replaceState(null, "", DROPBOX_REDIRECT_URI);
-    exportDialog.showModal();
-
     let transaction;
     try {
         transaction = JSON.parse(sessionStorage.getItem(DROPBOX_TRANSACTION_KEY));
@@ -774,16 +829,23 @@ async function finishDropboxAuthorization() {
     }
     sessionStorage.removeItem(DROPBOX_TRANSACTION_KEY);
 
-    if (!transaction || callbackUrl.searchParams.get("state") !== transaction.state) {
-        exportStatus.textContent = "Dropbox sign-in could not be verified. Please try again.";
+    const isBrowse = transaction?.action === "browse";
+    const dialog = isBrowse ? importDialog : exportDialog;
+    const status = isBrowse ? importStatus : exportStatus;
+    if (!transaction || !["browse", "upload"].includes(transaction.action)
+        || callbackUrl.searchParams.get("state") !== transaction.state) {
+        dialog.showModal();
+        status.textContent = "Dropbox sign-in could not be verified. Please try again.";
         return;
     }
     if (authorizationError) {
-        exportStatus.textContent = "Dropbox access was not granted.";
+        dialog.showModal();
+        status.textContent = "Dropbox access was not granted.";
         return;
     }
 
-    exportStatus.textContent = "Connecting to Dropbox...";
+    dialog.showModal();
+    status.textContent = "Connecting to Dropbox...";
     try {
         const response = await fetch("https://api.dropboxapi.com/oauth2/token", {
             method: "POST",
@@ -804,12 +866,121 @@ async function finishDropboxAuthorization() {
             expiresAt: Date.now() + token.expires_in * 1000,
         };
         sessionStorage.setItem(DROPBOX_TOKEN_KEY, JSON.stringify(tokenSession));
-        await uploadToDropbox(tokenSession.accessToken);
+        if (isBrowse) {
+            await loadDropboxFiles(tokenSession.accessToken);
+        } else {
+            await uploadToDropbox(tokenSession.accessToken);
+        }
     } catch (error) {
-        exportStatus.textContent = `Could not save to Dropbox: ${error.message}`;
+        status.textContent = `${isBrowse ? "Could not open Dropbox" : "Could not save to Dropbox"}: ${error.message}`;
     }
 }
 
+// Import
+function loadImportedDocument(text, filename) {
+    if (editor.textContent.trim() && !window.confirm("Replace the document currently in the editor?")) {
+        return false;
+    }
+
+    editor.textContent = text;
+    const name = filename.replace(/\.(txt|md)$/i, "");
+    workName.value = name;
+    localStorage.setItem("work-name", name);
+    saveEditor();
+    return true;
+}
+
+async function loadDropboxFiles(accessToken) {
+    importStatus.textContent = "Loading Dropbox files...";
+    dropboxFiles.replaceChildren();
+    const files = [];
+    let cursor;
+    do {
+        const response = await fetch(`https://api.dropboxapi.com/2/files/${cursor ? "list_folder/continue" : "list_folder"}`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(cursor ? { cursor } : { path: "" }),
+        });
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) sessionStorage.removeItem(DROPBOX_TOKEN_KEY);
+            throw new Error(await getDropboxError(response));
+        }
+
+        const result = await response.json();
+        files.push(...result.entries);
+        cursor = result.has_more ? result.cursor : null;
+    } while (cursor);
+
+    const textFiles = files.filter((entry) =>
+        entry[".tag"] === "file" && DROPBOX_TEXT_FILE.test(entry.name)
+    );
+    if (!textFiles.length) {
+        importStatus.textContent = "No .txt or .md files found in your Dropbox app folder.";
+        return;
+    }
+
+    for (const file of textFiles) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = file.name;
+        button.addEventListener("click", async () => {
+            importStatus.textContent = `Opening ${file.name}...`;
+            try {
+                const downloadResponse = await fetch("https://content.dropboxapi.com/2/files/download", {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        "Dropbox-API-Arg": JSON.stringify({ path: file.path_lower }),
+                    },
+                });
+                if (!downloadResponse.ok) {
+                    if (downloadResponse.status === 401 || downloadResponse.status === 403) {
+                        sessionStorage.removeItem(DROPBOX_TOKEN_KEY);
+                    }
+                    throw new Error(await getDropboxError(downloadResponse));
+                }
+
+                const text = await downloadResponse.text();
+                if (loadImportedDocument(text, file.name)) {
+                    importStatus.textContent = `Opened ${file.name}.`;
+                    dropboxFiles.replaceChildren();
+                    importDialog.close();
+                    editor.focus();
+                } else {
+                    importStatus.textContent = "Open cancelled.";
+                }
+            } catch (error) {
+                importStatus.textContent = `Could not open ${file.name}: ${error.message}`;
+            }
+        });
+        dropboxFiles.append(button);
+    }
+
+    importStatus.textContent = `Choose a file from your Dropbox app folder (${textFiles.length} found).`;
+}
+
+async function getDropboxAccessToken(action) {
+    const savedToken = sessionStorage.getItem(DROPBOX_TOKEN_KEY);
+    let tokenSession;
+    try {
+        tokenSession = JSON.parse(savedToken || "null");
+    } catch {
+        sessionStorage.removeItem(DROPBOX_TOKEN_KEY);
+    }
+
+    if (tokenSession?.accessToken && tokenSession.expiresAt > Date.now() + 30000) {
+        return tokenSession.accessToken;
+    }
+
+    sessionStorage.removeItem(DROPBOX_TOKEN_KEY);
+    await startDropboxAuthorization(action);
+    return null;
+}
+
+// Wire up dialogs, local-file selection, and Dropbox actions.
 document.getElementById("export").addEventListener("click", () => {
     exportStatus.textContent = "";
     exportDialog.showModal();
@@ -819,16 +990,59 @@ document.getElementById("close-export").addEventListener("click", () => {
     exportDialog.close();
 });
 
+document.getElementById("import").addEventListener("click", () => {
+    importStatus.textContent = "";
+    dropboxFiles.replaceChildren();
+    importDialog.showModal();
+});
+
+document.getElementById("close-import").addEventListener("click", () => {
+    importDialog.close();
+});
+
+document.getElementById("open-local-file").addEventListener("click", () => {
+    document.getElementById("local-file").click();
+});
+
+document.getElementById("local-file").addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    importStatus.textContent = `Opening ${file.name}...`;
+    try {
+        if (!DROPBOX_TEXT_FILE.test(file.name)) {
+            throw new Error("Choose a .txt or .md text file.");
+        }
+        const text = await file.text();
+        if (loadImportedDocument(text, file.name)) {
+            importStatus.textContent = `Opened ${file.name}.`;
+            importDialog.close();
+            editor.focus();
+        } else {
+            importStatus.textContent = "Open cancelled.";
+        }
+    } catch (error) {
+        importStatus.textContent = `Could not open ${file.name}: ${error.message}`;
+    } finally {
+        event.target.value = "";
+    }
+});
+
+document.getElementById("browse-dropbox").addEventListener("click", async () => {
+    importStatus.textContent = "";
+    try {
+        const accessToken = await getDropboxAccessToken("browse");
+        if (accessToken) await loadDropboxFiles(accessToken);
+    } catch (error) {
+        importStatus.textContent = `Could not connect to Dropbox: ${error.message}`;
+    }
+});
+
 document.getElementById("dropbox-document").addEventListener("click", async () => {
     exportStatus.textContent = "";
     try {
-        const tokenSession = JSON.parse(sessionStorage.getItem(DROPBOX_TOKEN_KEY) || "null");
-        if (tokenSession && tokenSession.expiresAt > Date.now() + 30000) {
-            await uploadToDropbox(tokenSession.accessToken);
-        } else {
-            sessionStorage.removeItem(DROPBOX_TOKEN_KEY);
-            await startDropboxAuthorization();
-        }
+        const accessToken = await getDropboxAccessToken("upload");
+        if (accessToken) await uploadToDropbox(accessToken);
     } catch (error) {
         exportStatus.textContent = `Could not connect to Dropbox: ${error.message}`;
     }
