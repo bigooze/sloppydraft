@@ -1,5 +1,8 @@
 # sloppydraft
 
+sloppydraft is a vibe coded basic typewriter that disables backspace. I'm working on another version where I rebuild it from scratch as a learning exercise. Here's the AI slop readme with some educational content for my future self:
+
+
 sloppydraft is a browser-based strict rough-draft typewriter. It autosaves your work in the browser and exports it as a plain-text `.txt` file.
 
 Backspace and Delete never erase text. Instead, they wrap the affected word in square brackets, so marked text exports as `[word]`. Repeated deletion attempts do not add extra brackets.
