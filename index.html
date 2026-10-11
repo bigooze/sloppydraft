@@ -277,6 +277,39 @@ body {
     color: var(--text);
 }
 
+#session-timer {
+    min-height: 24px;
+    border: 1px solid var(--field-border);
+    border-radius: 3px;
+    padding: 2px 8px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+}
+
+#session-timer:hover {
+    border-color: var(--accent);
+    color: var(--accent-hover);
+}
+
+#session-timer:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
+#timer-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
 #work-name {
     width: 150px;
     min-width: 0;
@@ -607,9 +640,11 @@ body.toolbar-hidden #editor {
 <main>
     <div id="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Document" data-placeholder="Start writing..." spellcheck="true"></div>
 </main>
-<footer id="footer-counts" aria-label="Word count">
+<footer id="footer-counts" aria-label="Writing progress and timer">
     <span class="footer-count" id="total-count-display"><strong>total</strong> <output id="total-word-count">0</output><span id="total-goal-display"></span></span>
     <span class="footer-count" id="session-count-display"><strong>session</strong> <output id="session-word-count">0</output><span id="session-goal-display"></span></span>
+    <button id="session-timer" type="button" aria-label="Start 15-minute writing timer">Start 15:00</button>
+    <span id="timer-status" role="status" aria-live="polite"></span>
 </footer>
 <dialog id="export-dialog" aria-labelledby="export-heading">
     <h2 class="dialog-heading" id="export-heading">Export document</h2>
@@ -646,7 +681,8 @@ const totalGoalInput = document.getElementById("total-goal");
 const sessionGoalInput = document.getElementById("session-goal");
 const showTotalCountInput = document.getElementById("show-total-count");
 const showSessionCountInput = document.getElementById("show-session-count");
-const footerCounts = document.getElementById("footer-counts");
+const sessionTimerButton = document.getElementById("session-timer");
+const timerStatus = document.getElementById("timer-status");
 const workName = document.getElementById("work-name");
 const lightModeButton = document.getElementById("light-mode");
 const fontModeButton = document.getElementById("font-mode");
@@ -672,6 +708,9 @@ let showSessionCount = localStorage.getItem("show-session-count") !== "false";
 let burnPresses = 0;
 let burnDeadline = 0;
 let burnTimer;
+const SESSION_TIMER_DURATION = 15 * 60 * 1000;
+let sessionTimerDeadline = 0;
+let sessionTimerInterval;
 
 workName.value = localStorage.getItem("work-name") || "";
 
@@ -755,13 +794,47 @@ function updateWordCounts() {
     sessionGoalDisplay.textContent = `${session === 1 ? " word" : " words"}${sessionGoal ? ` · goal ${sessionGoal.toLocaleString()}` : ""}`;
     totalCountDisplay.hidden = !showTotalCount;
     sessionCountDisplay.hidden = !showSessionCount;
-    footerCounts.hidden = !showTotalCount && !showSessionCount;
 }
 
 function saveEditor() {
     localStorage.setItem("document-html", editor.innerHTML);
     updateWordCounts();
 }
+
+function updateSessionTimer() {
+    const remaining = Math.max(0, sessionTimerDeadline - Date.now());
+    if (remaining === 0) {
+        clearInterval(sessionTimerInterval);
+        sessionTimerInterval = null;
+        sessionTimerDeadline = 0;
+        sessionTimerButton.textContent = "Restart 15:00";
+        sessionTimerButton.setAttribute("aria-label", "Restart 15-minute writing timer");
+        timerStatus.textContent = "15-minute writing timer complete.";
+        return;
+    }
+
+    const totalSeconds = Math.ceil(remaining / 1000);
+    const display = `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
+    sessionTimerButton.textContent = `Stop ${display}`;
+    sessionTimerButton.setAttribute("aria-label", `Stop 15-minute writing timer with ${display} remaining`);
+}
+
+sessionTimerButton.addEventListener("click", () => {
+    if (sessionTimerInterval) {
+        clearInterval(sessionTimerInterval);
+        sessionTimerInterval = null;
+        sessionTimerDeadline = 0;
+        sessionTimerButton.textContent = "Start 15:00";
+        sessionTimerButton.setAttribute("aria-label", "Start 15-minute writing timer");
+        timerStatus.textContent = "Timer stopped.";
+        return;
+    }
+
+    timerStatus.textContent = "";
+    sessionTimerDeadline = Date.now() + SESSION_TIMER_DURATION;
+    updateSessionTimer();
+    sessionTimerInterval = setInterval(updateSessionTimer, 250);
+});
 
 // Strict-draft editing
 // DOM ranges use node positions; these helpers translate between those positions

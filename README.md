@@ -9,6 +9,8 @@ Backspace and Delete never erase text. Instead, they wrap the affected word in s
 
 Open Options to set total-document and current-session word goals, switch between light/dark themes or serif/Courier type, open or export a document, and access other controls. The bottom bar shows total and session word counts by default; each can be hidden independently in Options. A goal of 0 disables that goal. Session count is the net change in the document's word count since the current tab was opened.
 
+Click the timer beside the bottom counts to start a 15-minute writing session. Click it again to stop and reset the timer.
+
 Use Hide menu in Options to hide the branding and controls for a distraction-free writing view. The menu button reappears in the top-right corner; the visibility choice is saved in your browser.
 
 Export regularly. Clearing your browser storage may erase locally saved work.
