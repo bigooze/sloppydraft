@@ -25,7 +25,6 @@
     --page-bg: #f2f0e8;
     --text: #393d36;
     --editor-text: #3d433a;
-    --muted: #697064;
     --placeholder: #686d63;
     --muted: #62685f;
     --accent: #5d704e;
@@ -58,6 +57,13 @@ body {
     border-bottom: 1px solid var(--border);
 }
 
+.toolbar-identity {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
 .toolbar[hidden],
 #show-toolbar[hidden] {
     display: none;
@@ -70,11 +76,205 @@ body {
 }
 
 .toolbar-actions {
+    position: relative;
+}
+
+.options-toggle {
+    min-height: 38px;
+    border: 1px solid var(--field-border);
+    border-radius: 3px;
+    padding: 0 14px;
+    background: transparent;
+    color: var(--text);
+    font: 14px/1.4 system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.options-toggle:hover,
+.options-menu[open] .options-toggle {
+    border-color: var(--accent);
+    color: var(--accent-hover);
+}
+
+.options-toggle:focus-visible,
+.options-panel button:focus-visible,
+.options-panel a:focus-visible,
+.options-panel input:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.options-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 3;
+    width: min(340px, calc(100vw - 36px));
+    max-height: min(75vh, 620px);
+    padding: 18px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--page-bg);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 20%);
+    color: var(--text);
+}
+
+.options-group + .options-group {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.options-heading {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font: 600 11px/1.4 system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.goal-fields {
+    display: grid;
+    gap: 10px;
+}
+
+.goal-field {
     display: flex;
     align-items: center;
-    gap: 24px;
+    justify-content: space-between;
+    gap: 12px;
+    font: 13px/1.4 system-ui, sans-serif;
+}
+
+.goal-field input {
+    width: 112px;
+    min-height: 36px;
+    border: 1px solid var(--field-border);
+    border-radius: 3px;
+    padding: 6px 8px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+}
+
+.options-note {
+    margin: 8px 0 0;
     color: var(--muted);
-    font: 14px/1.4 system-ui, sans-serif;
+    font: 12px/1.4 system-ui, sans-serif;
+}
+
+.visibility-options,
+.menu-actions {
+    display: grid;
+    gap: 8px;
+}
+
+.visibility-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font: 13px/1.4 system-ui, sans-serif;
+}
+
+.visibility-option input {
+    accent-color: var(--accent);
+}
+
+.menu-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.menu-actions button,
+.menu-actions a {
+    min-height: 38px;
+    border: 1px solid var(--field-border);
+    border-radius: 3px;
+    padding: 8px 10px;
+    background: transparent;
+    color: var(--text);
+    font: 13px/1.3 system-ui, sans-serif;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.menu-actions button:hover,
+.menu-actions a:hover {
+    border-color: var(--accent);
+    color: var(--accent-hover);
+}
+
+.menu-actions #burn {
+    width: auto;
+    height: auto;
+}
+
+.menu-actions #export,
+.menu-actions #import,
+.menu-actions #font-mode,
+.menu-actions #light-mode {
+    width: 100%;
+    height: auto;
+    min-height: 38px;
+}
+
+.menu-actions #burn-control {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.menu-actions #burn-prompt {
+    top: auto;
+    right: 0;
+    bottom: calc(100% + 4px);
+    left: auto;
+    transform: none;
+    max-width: 220px;
+    text-align: right;
+}
+
+.menu-actions #hide-toolbar {
+    grid-column: 1 / -1;
+    width: auto;
+    height: auto;
+    min-height: 38px;
+    padding: 8px 10px;
+    font: 13px/1.3 system-ui, sans-serif;
+}
+
+#footer-counts {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    min-height: 34px;
+    padding: 7px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--page-bg);
+    color: var(--muted);
+    font: 11px/1.4 system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+}
+
+.footer-count[hidden] {
+    display: none;
+}
+
+.footer-count strong {
+    color: var(--text);
+    font-weight: 500;
+}
+
+.footer-count output {
+    color: var(--text);
 }
 
 #work-name {
@@ -98,23 +298,6 @@ body {
     outline-offset: 2px;
 }
 
-#readme-link {
-    color: var(--muted);
-    font: 12px/1.4 system-ui, sans-serif;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-
-#readme-link:hover,
-#readme-link:focus-visible {
-    color: var(--accent-hover);
-}
-
-#word-count {
-    color: var(--text);
-    font-variant-numeric: tabular-nums;
-}
-
 #export,
 #import,
 #font-mode,
@@ -135,22 +318,9 @@ body {
     cursor: pointer;
 }
 
-#export svg,
-#import svg,
-#hide-toolbar svg,
-#light-mode svg,
-#show-toolbar svg {
-    width: 19px;
-    height: 19px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.8;
-}
-
-.font-icon {
-    font: 600 14px/1 system-ui, sans-serif;
+#hide-toolbar {
+    width: 36px;
+    height: 36px;
 }
 
 #export:hover,
@@ -190,6 +360,7 @@ body {
 body.toolbar-hidden #editor {
     min-height: 100vh;
     padding-top: 84px;
+    padding-bottom: 70px;
 }
 
 #burn-prompt {
@@ -337,22 +508,30 @@ body.toolbar-hidden #editor {
         padding-block: 12px;
     }
 
-    .toolbar-actions {
-        flex-wrap: wrap;
-        gap: 9px;
+    .toolbar-identity {
+        gap: 10px;
     }
 
     #work-name {
-        width: 130px;
+        width: min(130px, 38vw);
+    }
+
+    .options-panel {
+        right: -4px;
     }
 
     #editor {
         min-height: calc(100vh - 64px);
-        padding: 30px 22px 60px;
+        padding: 30px 22px 76px;
     }
 
     body.toolbar-hidden #editor {
-        padding: 66px 22px 60px;
+        padding: 66px 22px 76px;
+    }
+
+    #footer-counts {
+        justify-content: space-around;
+        padding-inline: 10px;
     }
 }
 </style>
@@ -360,45 +539,64 @@ body.toolbar-hidden #editor {
 
 <body>
 <header class="toolbar" id="toolbar">
-    <h1 class="brand">sloppydraft</h1>
-    <div class="toolbar-actions">
-        <span><span id="word-count">0</span> <span id="word-label">words</span></span>
+    <div class="toolbar-identity">
+        <h1 class="brand">sloppydraft</h1>
         <input id="work-name" type="text" aria-label="Work name" placeholder="Work name" autocomplete="off">
-        <button id="light-mode" type="button" aria-label="Switch to light mode" title="Switch to light mode" aria-pressed="false">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="9"></circle>
-                <path d="M12 3a9 9 0 0 1 0 18 4.5 4.5 0 0 0 0-9 4.5 4.5 0 0 1 0-9Z" fill="currentColor" stroke="none"></path>
-                <circle cx="8.5" cy="7.5" r="1" fill="currentColor" stroke="none"></circle>
-                <circle cx="15.5" cy="16.5" r="1" fill="currentColor" stroke="none"></circle>
-            </svg>
-        </button>
-        <button id="font-mode" type="button" aria-label="Use Courier font" title="Use Courier font" aria-pressed="false"><span class="font-icon" aria-hidden="true">A&amp;</span></button>
-        <button id="import" type="button" aria-label="Open document" title="Open document" aria-haspopup="dialog" aria-controls="import-dialog">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3v12m0 0 4-4m-4 4-4-4"></path>
-                <path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path>
-            </svg>
-        </button>
-        <button id="export" type="button" aria-label="Export document" title="Export document" aria-haspopup="dialog" aria-controls="export-dialog">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 15V3m0 0L8 7m4-4 4 4"></path>
-                <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
-            </svg>
-        </button>
-        <div id="burn-control">
-            <span id="burn-prompt" role="status" aria-live="polite" hidden>
-                Press this 5 times in 5 seconds to burn everything
-                <span id="burn-countdown"></span>
-            </span>
-            <button id="burn" type="button" aria-label="Burn all writing" title="Burn all writing">🔥</button>
-        </div>
-
-        <a id="readme-link" href="README.md">README</a>
-        <button id="hide-toolbar" type="button" aria-controls="toolbar" aria-expanded="true" aria-label="Hide menu and branding" title="Hide menu and branding">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M5 12h14"></path>
-            </svg>
-        </button>
+    </div>
+    <div class="toolbar-actions">
+        <details class="options-menu" id="options-menu">
+            <summary class="options-toggle">Options</summary>
+            <div class="options-panel" id="options-panel">
+                <section class="options-group" aria-labelledby="goals-heading">
+                    <h2 class="options-heading" id="goals-heading">Writing goals</h2>
+                    <div class="goal-fields">
+                        <label class="goal-field" for="total-goal">
+                            <span>Total word goal</span>
+                            <input id="total-goal" type="number" min="0" step="1" inputmode="numeric">
+                        </label>
+                        <label class="goal-field" for="session-goal">
+                            <span>Session word goal</span>
+                            <input id="session-goal" type="number" min="0" step="1" inputmode="numeric">
+                        </label>
+                    </div>
+                    <p class="options-note">Set a goal of 0 for no goal.</p>
+                </section>
+                <section class="options-group" aria-labelledby="counts-heading">
+                    <h2 class="options-heading" id="counts-heading">Bottom counts</h2>
+                    <div class="visibility-options">
+                        <label class="visibility-option"><input id="show-total-count" type="checkbox"> Show total word count</label>
+                        <label class="visibility-option"><input id="show-session-count" type="checkbox"> Show session word count</label>
+                    </div>
+                </section>
+                <section class="options-group" aria-labelledby="appearance-heading">
+                    <h2 class="options-heading" id="appearance-heading">Appearance</h2>
+                    <div class="menu-actions">
+                        <button id="light-mode" type="button" aria-label="Switch to light mode" title="Switch to light mode" aria-pressed="false">Light mode</button>
+                        <button id="font-mode" type="button" aria-label="Use Courier font" title="Use Courier font" aria-pressed="false">Courier font</button>
+                    </div>
+                </section>
+                <section class="options-group" aria-labelledby="document-heading">
+                    <h2 class="options-heading" id="document-heading">Document</h2>
+                    <div class="menu-actions">
+                        <button id="import" type="button" aria-label="Open document" aria-haspopup="dialog" aria-controls="import-dialog">Open</button>
+                        <button id="export" type="button" aria-label="Export document" aria-haspopup="dialog" aria-controls="export-dialog">Export</button>
+                        <div id="burn-control">
+                            <span id="burn-prompt" role="status" aria-live="polite" hidden>
+                                Press this 5 times in 5 seconds to burn everything
+                                <span id="burn-countdown"></span>
+                            </span>
+                            <button id="burn" type="button" aria-label="Burn all writing" title="Burn all writing">🔥 Burn all</button>
+                        </div>
+                    </div>
+                </section>
+                <section class="options-group" aria-label="More options">
+                    <div class="menu-actions">
+                        <a id="readme-link" href="README.md">README</a>
+                        <button id="hide-toolbar" type="button" aria-controls="toolbar" aria-expanded="true">Hide menu</button>
+                    </div>
+                </section>
+            </div>
+        </details>
     </div>
 </header>
 <button id="show-toolbar" type="button" aria-controls="toolbar" aria-expanded="false" aria-label="Show menu and branding" title="Show menu and branding" hidden>
@@ -409,6 +607,10 @@ body.toolbar-hidden #editor {
 <main>
     <div id="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Document" data-placeholder="Start writing..." spellcheck="true"></div>
 </main>
+<footer id="footer-counts" aria-label="Word count">
+    <span class="footer-count" id="total-count-display"><strong>total</strong> <output id="total-word-count">0</output><span id="total-goal-display"></span></span>
+    <span class="footer-count" id="session-count-display"><strong>session</strong> <output id="session-word-count">0</output><span id="session-goal-display"></span></span>
+</footer>
 <dialog id="export-dialog" aria-labelledby="export-heading">
     <h2 class="dialog-heading" id="export-heading">Export document</h2>
     <div class="dialog-actions">
@@ -434,8 +636,17 @@ body.toolbar-hidden #editor {
 // Start here when following the app: the page is intentionally self-contained.
 // These references connect the JavaScript to the controls in the HTML above.
 const editor = document.getElementById("editor");
-const wordCount = document.getElementById("word-count");
-const wordLabel = document.getElementById("word-label");
+const totalWordCount = document.getElementById("total-word-count");
+const sessionWordCount = document.getElementById("session-word-count");
+const totalCountDisplay = document.getElementById("total-count-display");
+const sessionCountDisplay = document.getElementById("session-count-display");
+const totalGoalDisplay = document.getElementById("total-goal-display");
+const sessionGoalDisplay = document.getElementById("session-goal-display");
+const totalGoalInput = document.getElementById("total-goal");
+const sessionGoalInput = document.getElementById("session-goal");
+const showTotalCountInput = document.getElementById("show-total-count");
+const showSessionCountInput = document.getElementById("show-session-count");
+const footerCounts = document.getElementById("footer-counts");
 const workName = document.getElementById("work-name");
 const lightModeButton = document.getElementById("light-mode");
 const fontModeButton = document.getElementById("font-mode");
@@ -445,6 +656,7 @@ const burnCountdown = document.getElementById("burn-countdown");
 const toolbar = document.getElementById("toolbar");
 const hideToolbarButton = document.getElementById("hide-toolbar");
 const showToolbarButton = document.getElementById("show-toolbar");
+const optionsMenu = document.getElementById("options-menu");
 const DROPBOX_APP_KEY = "44zncdp835se0am";
 const DROPBOX_REDIRECT_URI = `${window.location.origin}${window.location.pathname}`;
 const DROPBOX_TRANSACTION_KEY = "dropbox-oauth-transaction";
@@ -455,6 +667,8 @@ const DROPBOX_TEXT_FILE = /\.(txt|md)$/i;
 let lightMode = localStorage.getItem("light-mode") === "true";
 let courierMode = localStorage.getItem("courier-mode") === "true";
 let toolbarHidden = localStorage.getItem("toolbar-hidden") === "true";
+let showTotalCount = localStorage.getItem("show-total-count") !== "false";
+let showSessionCount = localStorage.getItem("show-session-count") !== "false";
 let burnPresses = 0;
 let burnDeadline = 0;
 let burnTimer;
@@ -474,12 +688,35 @@ editor.querySelectorAll("s, del").forEach((markedWord) => {
 });
 editor.innerHTML = editor.innerHTML.replace(/~~([\s\S]*?)~~/g, "[$1]");
 
+function countWords(text) {
+    return (text.trim().match(/\S+/g) || []).length;
+}
+
+function loadGoal(key) {
+    const savedGoal = localStorage.getItem(key);
+    if (savedGoal === null) return 0;
+
+    const goal = Number(savedGoal);
+    if (!Number.isSafeInteger(goal) || goal < 0) {
+        localStorage.removeItem(key);
+        return 0;
+    }
+    return goal;
+}
+
+totalGoalInput.value = loadGoal("total-word-goal");
+sessionGoalInput.value = loadGoal("session-word-goal");
+showTotalCountInput.checked = showTotalCount;
+showSessionCountInput.checked = showSessionCount;
+const sessionStartWordCount = countWords(editor.textContent);
+
 // Appearance and persistence
 function updateFontMode() {
     document.documentElement.classList.toggle("courier-mode", courierMode);
     fontModeButton.setAttribute("aria-pressed", String(courierMode));
     fontModeButton.setAttribute("aria-label", courierMode ? "Use serif font" : "Use Courier font");
     fontModeButton.title = courierMode ? "Use serif font" : "Use Courier font";
+    fontModeButton.textContent = courierMode ? "Serif font" : "Courier font";
 }
 
 function updateLightMode() {
@@ -488,10 +725,12 @@ function updateLightMode() {
     lightModeButton.setAttribute("aria-pressed", String(lightMode));
     lightModeButton.setAttribute("aria-label", lightMode ? "Switch to dark mode" : "Switch to light mode");
     lightModeButton.title = lightMode ? "Switch to dark mode" : "Switch to light mode";
+    lightModeButton.textContent = lightMode ? "Dark mode" : "Light mode";
 }
 
 function setToolbarHidden(hidden, moveFocus = true) {
     toolbarHidden = hidden;
+    if (hidden) optionsMenu.open = false;
     toolbar.hidden = hidden;
     showToolbarButton.hidden = !hidden;
     hideToolbarButton.setAttribute("aria-expanded", String(!hidden));
@@ -500,15 +739,28 @@ function setToolbarHidden(hidden, moveFocus = true) {
     localStorage.setItem("toolbar-hidden", String(hidden));
 
     if (moveFocus) {
-        (hidden ? showToolbarButton : hideToolbarButton).focus();
+        (hidden ? showToolbarButton : optionsMenu.querySelector("summary")).focus();
     }
+}
+
+function updateWordCounts() {
+    const total = countWords(editor.textContent);
+    const session = Math.max(0, total - sessionStartWordCount);
+    const totalGoal = Number(totalGoalInput.value) || 0;
+    const sessionGoal = Number(sessionGoalInput.value) || 0;
+
+    totalWordCount.textContent = total.toLocaleString();
+    sessionWordCount.textContent = session.toLocaleString();
+    totalGoalDisplay.textContent = `${total === 1 ? " word" : " words"}${totalGoal ? ` · goal ${totalGoal.toLocaleString()}` : ""}`;
+    sessionGoalDisplay.textContent = `${session === 1 ? " word" : " words"}${sessionGoal ? ` · goal ${sessionGoal.toLocaleString()}` : ""}`;
+    totalCountDisplay.hidden = !showTotalCount;
+    sessionCountDisplay.hidden = !showSessionCount;
+    footerCounts.hidden = !showTotalCount && !showSessionCount;
 }
 
 function saveEditor() {
     localStorage.setItem("document-html", editor.innerHTML);
-    const words = editor.textContent.trim().match(/\S+/g) || [];
-    wordCount.textContent = words.length;
-    wordLabel.textContent = words.length === 1 ? "word" : "words";
+    updateWordCounts();
 }
 
 // Strict-draft editing
@@ -614,6 +866,31 @@ saveEditor();
 hideToolbarButton.addEventListener("click", () => setToolbarHidden(true));
 showToolbarButton.addEventListener("click", () => setToolbarHidden(false));
 
+function saveGoal(input, key) {
+    if (input.value === "") input.value = "0";
+    if (!input.checkValidity() || !Number.isSafeInteger(input.valueAsNumber)) {
+        input.reportValidity();
+        return;
+    }
+    localStorage.setItem(key, String(input.valueAsNumber));
+    updateWordCounts();
+}
+
+totalGoalInput.addEventListener("change", () => saveGoal(totalGoalInput, "total-word-goal"));
+sessionGoalInput.addEventListener("change", () => saveGoal(sessionGoalInput, "session-word-goal"));
+
+showTotalCountInput.addEventListener("change", () => {
+    showTotalCount = showTotalCountInput.checked;
+    localStorage.setItem("show-total-count", String(showTotalCount));
+    updateWordCounts();
+});
+
+showSessionCountInput.addEventListener("change", () => {
+    showSessionCount = showSessionCountInput.checked;
+    localStorage.setItem("show-session-count", String(showSessionCount));
+    updateWordCounts();
+});
+
 // Keep writing plain text, and route destructive keys through markWord().
 editor.addEventListener("input", () => {
     saveEditor();
@@ -694,8 +971,7 @@ burnButton.addEventListener("click", () => {
         localStorage.removeItem("document-html");
         localStorage.removeItem("document");
         localStorage.removeItem("work-name");
-        wordCount.textContent = "0";
-        wordLabel.textContent = "words";
+        updateWordCounts();
         resetBurnCountdown();
         return;
     }

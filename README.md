@@ -7,9 +7,9 @@ sloppydraft is a browser-based strict rough-draft typewriter. It autosaves your 
 
 Backspace and Delete never erase text. Instead, they wrap the affected word in square brackets, so marked text exports as `[word]`. Repeated deletion attempts do not add extra brackets.
 
-Use the font toggle to switch between the default serif typeface and Courier. Dark mode uses green text in the writing area; light mode is also available.
+Open Options to set total-document and current-session word goals, switch between light/dark themes or serif/Courier type, open or export a document, and access other controls. The bottom bar shows total and session word counts by default; each can be hidden independently in Options. A goal of 0 disables that goal. Session count is the net change in the document's word count since the current tab was opened.
 
-Use the arrow button in the toolbar to hide the branding and controls for a distraction-free writing view. The menu button reappears in the top-right corner; the visibility choice is saved in your browser.
+Use Hide menu in Options to hide the branding and controls for a distraction-free writing view. The menu button reappears in the top-right corner; the visibility choice is saved in your browser.
 
 Export regularly. Clearing your browser storage may erase locally saved work.
 
@@ -26,7 +26,7 @@ The app is intentionally kept in one file: `index.html` contains the page struct
 ### Follow the data
 
 1. **Page structure:** Find the toolbar, editor, and the import/export `<dialog>` elements. The IDs on these elements are the connection points used by JavaScript.
-2. **Saved state:** On startup, the script reads the draft and preferences from `localStorage`. `saveEditor()` stores the writing and refreshes the word count; `sessionStorage` is used for short-lived Dropbox sign-in state and tokens.
+2. **Saved state:** On startup, the script reads the draft and preferences from `localStorage`. `saveEditor()` stores the writing and refreshes both word counts; the session count compares the current total with the count when the tab opened. `sessionStorage` is used for short-lived Dropbox sign-in state and tokens.
 3. **Editing:** The editor is a `contenteditable` element. `keydown`, `beforeinput`, and `paste` handlers intercept browser defaults. `markWord()` uses the selection and DOM ranges to mark a word instead of deleting it.
 4. **File input/output:** The local-file input reads plain text with `File.text()`. Export creates a `File`; a temporary object URL makes it downloadable without a server. Imports use `textContent` so file contents become text, not executable markup.
 5. **Dropbox:** `startDropboxAuthorization()` creates a PKCE challenge and redirects to Dropbox. `finishDropboxAuthorization()` validates the returned state, exchanges the authorization code, and resumes the requested action. Listing and downloading use Dropbox's API; `getDropboxAccessToken()` shares the session-token check between opening and saving.
