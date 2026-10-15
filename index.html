@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>sloppydraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
 /* Theme tokens keep the dark and light palettes in one place. */
 :root {
@@ -538,9 +541,12 @@ body.focus-mode #editor {
     outline-offset: 2px;
 }
 
-:root.courier-mode,
-:root.courier-mode * {
-    font-family: "Courier New", Courier, monospace !important;
+:root.courier-prime-mode #editor {
+    font-family: "Courier Prime", monospace;
+}
+
+:root.special-elite-mode #editor {
+    font-family: "Special Elite", cursive;
 }
 
 :root.sans-serif-mode #editor {
@@ -625,7 +631,8 @@ body.focus-mode #editor {
                             <select id="font-mode">
                                 <option value="serif">Serif</option>
                                 <option value="sans-serif">Sans-serif</option>
-                                <option value="courier">Courier</option>
+                                <option value="courier-prime">Courier Prime</option>
+                                <option value="special-elite">Special Elite</option>
                             </select>
                         </label>
                     </div>
@@ -718,9 +725,11 @@ const DROPBOX_TEXT_FILE = /\.(txt|md)$/i;
 // Preferences and drafts persist across reloads; OAuth tokens last only for this tab.
 let lightMode = localStorage.getItem("light-mode") === "true";
 const savedFontMode = localStorage.getItem("writing-font");
-let writingFont = ["serif", "sans-serif", "courier"].includes(savedFontMode)
+let writingFont = ["serif", "sans-serif", "courier-prime", "special-elite"].includes(savedFontMode)
     ? savedFontMode
-    : localStorage.getItem("courier-mode") === "true" ? "courier" : "serif";
+    : savedFontMode === "courier" || localStorage.getItem("courier-mode") === "true"
+        ? "courier-prime"
+        : "serif";
 let focusMode = localStorage.getItem("toolbar-hidden") === "true";
 let showTotalCount = localStorage.getItem("show-total-count") !== "false";
 let showSessionCount = localStorage.getItem("show-session-count") !== "false";
@@ -770,7 +779,8 @@ const sessionStartWordCount = countWords(editor.textContent);
 
 // Appearance and persistence
 function updateFontMode() {
-    document.documentElement.classList.toggle("courier-mode", writingFont === "courier");
+    document.documentElement.classList.toggle("courier-prime-mode", writingFont === "courier-prime");
+    document.documentElement.classList.toggle("special-elite-mode", writingFont === "special-elite");
     document.documentElement.classList.toggle("sans-serif-mode", writingFont === "sans-serif");
     fontModeButton.value = writingFont;
 }
